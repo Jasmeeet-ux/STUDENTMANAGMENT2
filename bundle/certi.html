@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Responsive Pricing Plans</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background: #f3f4f6;
+    }
+
+    .pricing-section {
+      padding: 100px 0;
+      background: linear-gradient(135deg, #fff6f0 0%, #ffe9d6 100%);
+    }
+
+    .pricing-section h2 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin-bottom: 80px;
+      color: #2b2b2b;
+    }
+
+    /* Swiper Container (used only for mobile/tablet) */
+    .swiper {
+      width: 90%;
+      max-width: 1200px;
+      margin: auto;
+      overflow: visible;
+      display: none; /* hidden on desktop */
+    }
+
+    /* Static Grid for desktop */
+    .pricing-grid {
+      display: none;
+      width: 90%;
+      max-width: 1200px;
+      margin: auto;
+      gap: 40px;
+      justify-content: center;
+    }
+
+    .bundle-card {
+      position: relative;
+      background: #fff;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      padding: 120px 25px 40px;
+      width: 320px;
+      overflow: visible;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .bundle-card:hover {
+      transform: translateY(-10px);
+      box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+    }
+
+    .bundle-icon-wrapper {
+      position: absolute;
+      top: -60px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: linear-gradient(135deg, #ff8f5e, #ffbb4a);
+      border-radius: 50%;
+      width: 120px;
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .bundle-icon-wrapper img {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+    }
+
+    .bundle-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #2b2b2b;
+      margin-bottom: 10px;
+    }
+
+    .bundle-price {
+      font-size: 1.5rem;
+      color: #ff7b00;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .bundle-card p {
+      color: #555;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 25px;
+    }
+
+    .bundle-btn {
+      background: linear-gradient(135deg, #ff7b00, #ffb100);
+      color: white;
+      padding: 10px 25px;
+      border-radius: 30px;
+      text-decoration: none;
+      transition: background 0.3s ease;
+    }
+
+    .bundle-btn:hover {
+      background: linear-gradient(135deg, #ff9f50, #ffd36b);
+    }
+
+    /* Show grid on desktop */
+    @media (min-width: 1024px) {
+      .pricing-grid {
+        display: flex;
+      }
+    }
+
+    /* Show swiper only on mobile/tablet */
+    @media (max-width: 1023px) {
+      .swiper {
+        display: block;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .bundle-card {
+        width: 260px;
+        padding-top: 100px;
+      }
+      .bundle-icon-wrapper {
+        width: 100px;
+        height: 100px;
+        top: -50px;
+      }
+      .bundle-icon-wrapper img {
+        width: 50px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <section class="pricing-section">
+    <h2>Choose Your Plan</h2>
+
+    <!-- 🖥️ Static Grid for Desktop -->
+    <div class="pricing-grid">
+      <div class="bundle-card">
+        <div class="bundle-icon-wrapper">
+          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828817.png" alt="icon">
+        </div>
+        <h3 class="bundle-title">Basic Plan</h3>
+        <div class="bundle-price">$19/month</div>
+        <p>Perfect for individuals starting out with simple projects and basic needs.</p>
+        <a href="#" class="bundle-btn">Buy Now</a>
+      </div>
+
+      <div class="bundle-card">
+        <div class="bundle-icon-wrapper" style="background: linear-gradient(135deg, #5f9fff, #7ad4ff);">
+          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828919.png" alt="icon">
+        </div>
+        <h3 class="bundle-title">Pro Plan</h3>
+        <div class="bundle-price">$49/month</div>
+        <p>Advanced tools for professionals who need more power and flexibility.</p>
+        <a href="#" class="bundle-btn">Buy Now</a>
+      </div>
+
+      <div class="bundle-card">
+        <div class="bundle-icon-wrapper" style="background: linear-gradient(135deg, #44e07b, #82ffa0);">
+          <img src="https://cdn-icons-png.flaticon.com/512/1828/1828970.png" alt="icon">
+        </div>
+        <h3 class="bundle-title">Premium Plan</h3>
+        <div class="bundle-price">$79/month</div>
+        <p>Comprehensive plan designed for teams that require advanced integrations.</p>
+        <a href="#" class="bundle-btn">Buy Now</a>
+      </div>
+    </div>
+
+    <!-- 📱 Swiper Slider for Tablet & Mobile -->
+    <div class="swiper mySwiper">
+      <div class="swiper-wrapper">
+        <div class="swiper-slide">
+          <div class="bundle-card">
+            <div class="bundle-icon-wrapper">
+              <img src="https://cdn-icons-png.flaticon.com/512/1828/1828817.png" alt="icon">
+            </div>
+            <h3 class="bundle-title">Basic Plan</h3>
+            <div class="bundle-price">$19/month</div>
+            <p>Perfect for individuals starting out with simple projects and basic needs.</p>
+            <a href="#" class="bundle-btn">Buy Now</a>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="bundle-card">
+            <div class="bundle-icon-wrapper" style="background: linear-gradient(135deg, #5f9fff, #7ad4ff);">
+              <img src="https://cdn-icons-png.flaticon.com/512/1828/1828919.png" alt="icon">
+            </div>
+            <h3 class="bundle-title">Pro Plan</h3>
+            <div class="bundle-price">$49/month</div>
+            <p>Advanced tools for professionals who need more power and flexibility.</p>
+            <a href="#" class="bundle-btn">Buy Now</a>
+          </div>
+        </div>
+
+        <div class="swiper-slide">
+          <div class="bundle-card">
+            <div class="bundle-icon-wrapper" style="background: linear-gradient(135deg, #44e07b, #82ffa0);">
+              <img src="https://cdn-icons-png.flaticon.com/512/1828/1828970.png" alt="icon">
+            </div>
+            <h3 class="bundle-title">Premium Plan</h3>
+            <div class="bundle-price">$79/month</div>
+            <p>Comprehensive plan designed for teams that require advanced integrations.</p>
+            <a href="#" class="bundle-btn">Buy Now</a>
+          </div>
+        </div>
+      </div>
+      <div class="swiper-pagination"></div>
+    </div>
+  </section>
+
+  <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+  <script>
+    var swiper = new Swiper(".mySwiper", {
+      loop: true,
+      grabCursor: true,
+      spaceBetween: 40,
+      pagination: {
+        el: ".swiper-pagination",
+        clickable: true,
+      },
+      slidesPerView: 1,
+      breakpoints: {
+        768: { slidesPerView: 2 },
+        1024: { slidesPerView: 3 }
+      }
+    });
+  </script>
+</body>
+</html>

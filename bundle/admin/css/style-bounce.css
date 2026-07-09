@@ -1,0 +1,8 @@
+body { font-family: Arial; margin:20px; background:#f7f7f7; }
+h1 { color:#2f3640; }
+table { border-collapse: collapse; width:100%; background:#fff; }
+table th, table td { padding:10px; text-align:left; border:1px solid #ddd; }
+form input, form select, form button, form textarea { padding:8px; margin:5px 0; }
+form button { background:#40739e; color:#fff; border:none; cursor:pointer; }
+.error { color:red; }
+a { color:#40739e; text-decoration:none; margin-right:10px; }

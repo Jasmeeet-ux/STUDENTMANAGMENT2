@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COI × Delhi School of AI - Header</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <style>
+        /* Animated Gradient for Brand */
+        .brand-gradient {
+            background-size: 300% 300%;
+            animation: brandFlow 6s ease infinite;
+            background-image: linear-gradient(90deg, #313b45, #ebbe81, #8d2933);
+        }
+
+        @keyframes brandFlow {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Nav underline */
+        .nav-link::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: #ebbe81;
+            transition: width 0.3s ease;
+        }
+        .nav-link:hover::after { width: 100%; }
+
+        /* Mobile menu */
+        .mobile-menu { display: none; }
+        .mobile-menu.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Logo glow */
+        .logo-glow {
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle, #ebbe81 0%, #8d2933 100%);
+            filter: blur(14px);
+            opacity: 0.55;
+            transition: opacity 0.3s ease;
+        }
+        .logo-container:hover .logo-glow { opacity: 1; }
+
+        /* Dropdown animation */
+        .dropdown-menu {
+            opacity: 0;
+            transform: translateY(10px) scale(0.96);
+            transition: all 0.25s ease;
+            pointer-events: none;
+        }
+        .dropdown:hover .dropdown-menu {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+
+        /* Mobile arrow rotation */
+        .rotate { transform: rotate(180deg); }
+        .mobile-dropdown { display: none; }
+        .mobile-dropdown.active {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+    </style>
+</head>
+
+<body class="bg-[#282f49] text-white">
+
+    <!-- HEADER -->
+    <header id="header"
+        class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-transparent backdrop-blur-0">
+
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16 md:h-20">
+
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3 logo-container relative">
+                    <div class="relative">
+                        <div class="logo-glow"></div>
+                        <div class="relative bg-[#8d2933] rounded-lg p-2">
+                            <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                                <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                            </svg>
+                        </div>
+                    </div>
+
+                    <span class="text-xl md:text-2xl font-bold brand-gradient bg-clip-text text-transparent">
+                        COI × Delhi School of AI
+                    </span>
+                </a>
+
+                <!-- DESKTOP NAV -->
+                <nav class="hidden md:flex items-center gap-10">
+
+                    <!-- Desktop Dropdown -->
+                    <div class="relative dropdown">
+                        <span class="nav-link relative text-gray-200 hover:text-[#ebbe81] cursor-pointer font-medium">
+                            Courses
+                        </span>
+
+                        <div class="dropdown-menu absolute left-0  w-52 bg-[#313b45] border border-[#ebbe81]/30 shadow-xl rounded-lg p-3">
+                            <a class="block px-3 py-2 hover:bg-[#282f49] rounded">AI Fundamentals</a>
+                            <a class="block px-3 py-2 hover:bg-[#282f49] rounded">Machine Learning</a>
+                            <a class="block px-3 py-2 hover:bg-[#282f49] rounded">Prompt Engineering</a>
+                            <a class="block px-3 py-2 hover:bg-[#282f49] rounded">Deep Learning</a>
+                        </div>
+                    </div>
+
+                    <a class="nav-link relative text-gray-200 hover:text-[#ebbe81] font-medium">Resources</a>
+                    <a class="nav-link relative text-gray-200 hover:text-[#ebbe81] font-medium">About</a>
+                    <a class="nav-link relative text-gray-200 hover:text-[#ebbe81] font-medium">Contact</a>
+                </nav>
+
+                <!-- CTA -->
+                <div class="hidden md:flex items-center gap-4">
+                    <button class="px-4 py-2 border border-[#ebbe81] text-gray-200 hover:text-[#ebbe81] rounded-lg">
+                        Sign In
+                    </button>
+                    <button class="px-6 py-2 bg-[#8d2933] rounded-lg hover:bg-[#751f28]">
+                        Get Started
+                    </button>
+                </div>
+
+                <!-- MOBILE MENU BUTTON -->
+                <button id="menuBtn" class="md:hidden p-2 rounded-lg bg-[#313b45]">
+                    <svg id="menuIcon" class="w-6 h-6" stroke="white" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+
+                    <svg id="closeIcon" class="w-6 h-6 hidden" stroke="white" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- MOBILE MENU -->
+            <div id="mobileMenu" class="mobile-menu md:hidden py-4 border-t border-[#ebbe81]/30">
+
+                <nav class="flex flex-col gap-3">
+
+                    <!-- MOBILE DROPDOWN -->
+                    <button id="mobileDropdownBtn"
+                        class="flex justify-between items-center py-2 text-gray-200 font-medium hover:text-[#ebbe81]">
+
+                        Courses
+
+                        <svg id="dropdownArrow" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+
+                    <!-- MOBILE DROPDOWN CONTENT -->
+                    <div id="mobileDropdownMenu" class="mobile-dropdown ml-3 border-l border-[#ebbe81]/40 pl-3">
+
+                        <a class="py-2 block text-gray-300 hover:text-[#ebbe81]">AI Fundamentals</a>
+                        <a class="py-2 block text-gray-300 hover:text-[#ebbe81]">Machine Learning</a>
+                        <a class="py-2 block text-gray-300 hover:text-[#ebbe81]">Prompt Engineering</a>
+                        <a class="py-2 block text-gray-300 hover:text-[#ebbe81]">Deep Learning</a>
+
+                    </div>
+
+                    <a class="py-2 text-gray-200 hover:text-[#ebbe81]">Resources</a>
+                    <a class="py-2 text-gray-200 hover:text-[#ebbe81]">About</a>
+                    <a class="py-2 text-gray-200 hover:text-[#ebbe81]">Contact</a>
+
+                    <div class="flex flex-col gap-2 pt-4 border-t border-[#ebbe81]/30">
+                        <button class="px-4 py-2 border border-[#ebbe81] text-gray-200 hover:text-[#ebbe81] rounded">
+                            Sign In
+                        </button>
+                        <button class="px-4 py-2 bg-[#8d2933] rounded-lg hover:bg-[#751f28]">
+                            Get Started
+                        </button>
+                    </div>
+
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- SCROLL + MOBILE DROPDOWN LOGIC -->
+    <script>
+        const header = document.getElementById("header");
+        const mobileMenu = document.getElementById("mobileMenu");
+        const menuBtn = document.getElementById("menuBtn");
+        const menuIcon = document.getElementById("menuIcon");
+        const closeIcon = document.getElementById("closeIcon");
+
+        const mobileDropdownBtn = document.getElementById("mobileDropdownBtn");
+        const mobileDropdownMenu = document.getElementById("mobileDropdownMenu");
+        const dropdownArrow = document.getElementById("dropdownArrow");
+
+        // SCROLL EFFECT
+        window.addEventListener("scroll", () => {
+            if (window.scrollY > 10) {
+                header.classList.remove("bg-transparent", "backdrop-blur-0");
+                header.classList.add("bg-[#313b45]/95", "backdrop-blur-md", "shadow-xl");
+            } else {
+                header.classList.add("bg-transparent", "backdrop-blur-0");
+                header.classList.remove("bg-[#313b45]/95", "backdrop-blur-md", "shadow-xl");
+            }
+        });
+
+        // MOBILE MENU
+        menuBtn.addEventListener("click", () => {
+            mobileMenu.classList.toggle("active");
+            menuIcon.classList.toggle("hidden");
+            closeIcon.classList.toggle("hidden");
+        });
+
+        // MOBILE DROPDOWN
+        mobileDropdownBtn.addEventListener("click", () => {
+            mobileDropdownMenu.classList.toggle("active");
+            dropdownArrow.classList.toggle("rotate");
+        });
+    </script>
+
+</body>
+</html>

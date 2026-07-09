@@ -1,0 +1,30 @@
+RewriteEngine On
+RewriteBase /bundle/
+
+############################################
+# 1. Remove trailing slash (except folders)
+############################################
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.+)/$ /bundle/$1 [R=301,L]
+
+############################################
+# 2. Redirect .php to clean URL
+############################################
+RewriteCond %{THE_REQUEST} \s/+bundle/([^.]+)\.php[?\s] [NC]
+RewriteRule ^ %1 [R=301,L]
+
+############################################
+# 3. Internally map clean URL → .php file
+############################################
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !purchase-handler
+RewriteCond %{DOCUMENT_ROOT}/bundle/$1.php -f
+RewriteRule ^(.+)$ /bundle/$1.php [L,QSA]
+
+############################################
+# 4. Allow POST for purchase-handler
+############################################
+RewriteCond %{REQUEST_METHOD} POST
+RewriteCond %{REQUEST_URI} ^/bundle/purchase-handler$ [NC]
+RewriteRule ^ /bundle/purchase-handler.php [L,QSA]

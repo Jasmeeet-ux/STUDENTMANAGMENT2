@@ -1,0 +1,363 @@
+<?php
+// course-detail.php
+// Public course detail page (cleaned + backend integration)
+
+declare(strict_types=1);
+session_start();
+
+// Load DB (supports both $db and $pdo styles)
+require_once __DIR__ . '/db.php';
+
+if (!isset($db) && isset($pdo)) {
+    $db = $pdo;
+}
+if (!isset($db)) {
+    // If db variable still missing try common names
+    if (isset($dbh)) $db = $dbh;
+}
+
+if (!isset($db)) {
+    // Fatal: no DB connection
+    http_response_code(500);
+    echo "<h1>Database connection not available</h1><p>Please check db.php.</p>";
+    exit;
+}
+
+/**
+ * Convert various Google Drive sharing links to preview embed URL
+ * - Accepts: https://drive.google.com/file/d/FILE_ID/preview or /view
+ * - Accepts: https://drive.google.com/open?id=FILE_ID
+ * - Accepts query id param
+ * Returns embed URL or original if it's not a recognized Drive link
+ */
+function normalizeVideoUrl(string $url): string {
+    $url = trim($url);
+    if ($url === '') return '';
+
+    // If it's already an mp4 or direct video (simple heuristic)
+    if (preg_match('/\.(mp4|webm|ogg)(\?|$)/i', $url) || str_starts_with($url, 'http')) {
+        // try google drive detection
+        // pattern: /file/d/ID/
+        if (preg_match('#/file/d/([A-Za-z0-9_-]+)#', $url, $m)) {
+            $id = $m[1];
+            return "https://drive.google.com/uc?export=preview&id={$id}";
+        }
+        // pattern: id=ID
+        if (preg_match('/[?&]id=([A-Za-z0-9_-]+)/', $url, $m2)) {
+            $id = $m2[1];
+            return "https://drive.google.com/uc?export=preview&id={$id}";
+        }
+        // pattern: open?id=ID or /uc?id=ID
+        if (preg_match('#/d/([A-Za-z0-9_-]+)#', $url, $m3)) {
+            $id = $m3[1];
+            return "https://drive.google.com/uc?export=preview&id={$id}";
+        }
+
+        // Not a drive link recognized, return original
+        return $url;
+    }
+
+    return $url;
+}
+
+// Helper: escape output
+function e($v) {
+    return htmlspecialchars((string)$v, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+}
+
+// Get course id from query
+$courseId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+if ($courseId <= 0) {
+    // optional: fallback to first course if none provided
+    echo "<h1>Course not specified</h1>";
+    exit;
+}
+
+// Fetch course
+$stmt = $db->prepare("SELECT * FROM courses WHERE id = ? LIMIT 1");
+$stmt->execute([$courseId]);
+$course = $stmt->fetch(PDO::FETCH_ASSOC);
+
+if (!$course) {
+    http_response_code(404);
+    echo "<h1>Course not found</h1>";
+    exit;
+}
+
+// Fetch lessons ordered
+$stmt = $db->prepare("SELECT * FROM lessons WHERE course_id = ? ORDER BY COALESCE(order_no, id) ASC");
+$stmt->execute([$courseId]);
+$lessonsRaw = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Group lessons by module (if module empty, put in 'General')
+$lessons = [];
+foreach ($lessonsRaw as $ln) {
+    $mod = $ln['module'] ?: 'General';
+    if (!isset($lessons[$mod])) $lessons[$mod] = [];
+    $lessons[$mod][] = $ln;
+}
+
+// Determine demo / preview video to show in hero (prefer first is_preview)
+$demoVideoUrl = '';
+foreach ($lessonsRaw as $l) {
+    if (!empty($l['is_preview']) && $l['is_preview']) {
+        $demoVideoUrl = normalizeVideoUrl($l['video_url'] ?? '');
+        break;
+    }
+}
+// if no preview lesson, try the first lesson's video_url as a demo (but still mark as preview playback)
+if (!$demoVideoUrl && !empty($lessonsRaw)) {
+    $demoVideoUrl = normalizeVideoUrl($lessonsRaw[0]['video_url'] ?? '');
+}
+?>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title><?= e($course['title']) ?> — Course Detail</title>
+<link rel="stylesheet" href="Home_Page.css">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+
+<!-- header -->
+<?php include __DIR__ . '/includes/header.php'; ?>
+
+<!-- HERO -->
+<section class="Detail-hero-section py-5">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6">
+        <h1 class="Detail-hero-title"><?= e($course['title']) ?></h1>
+        <p class="Detail-hero-subtitle"><?= e($course['badge'] ?: 'Program') ?></p>
+        <div class="Detail-rating-section mb-3">
+            <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+            <i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+            <span class="Detail-review-count">(<?= rand(100,1200) ?> reviews)</span>
+        </div>
+
+        <p class="Detail-hero-description">
+            <?= nl2br(e(substr($course['description'] ?? '', 0, 420))) ?><?php if (strlen((string)$course['description']) > 420): ?>... <a href="#" class="Detail-read-more">Read more</a><?php endif; ?>
+        </p>
+
+        <div class="Detail-cta-buttons mt-3">
+            <a href="/bundle/payment.php?course=<?= (int)$course['id'] ?>" class="btn Detail-btn-subscribe btn-primary me-2">
+                Buy Now — ₹<?= number_format((float)$course['price'], 2) ?>
+            </a>
+            <a href="/bundle/cart.php?add=<?= (int)$course['id'] ?>" class="btn Detail-btn-cart btn-outline-secondary">Add to Cart</a>
+        </div>
+      </div>
+
+      <div class="col-lg-6 d-none d-lg-block">
+        <div class="Detail-hero-image">
+            <?php if ($demoVideoUrl): ?>
+                <div class="ratio ratio-16x9">
+                    <iframe src="<?= e($demoVideoUrl) ?>" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                </div>
+            <?php else: ?>
+                <?php if (!empty($course['image_url'])): ?>
+                    <img src="<?= e($course['image_url']) ?>" alt="<?= e($course['title']) ?>" class="img-fluid rounded">
+                <?php else: ?>
+                    <img src="/images/Main.png" alt="Course image" class="img-fluid rounded">
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- What's included -->
+<section class="Detail-whats-included-section py-5 bg-white">
+  <div class="container">
+    <h2 class="Detail-section-title">What's included</h2>
+    <div class="row g-3 mt-3">
+      <?php
+      // show features if available (features field might contain lines)
+      $features = [];
+      if (!empty($course['features'])) {
+          $lines = preg_split('/\r\n|\r|\n/', $course['features']);
+          foreach ($lines as $ln) {
+              $ln = trim($ln);
+              if ($ln) $features[] = $ln;
+          }
+      }
+
+      // default features
+      $defaultFeatures = [
+        'One project file',
+        'Chapter quizzes',
+        'Access on tablet and phone',
+        'Certificate of completion',
+        'Lifetime access',
+        'Downloadable resources',
+        'Community access',
+        'Design templates'
+      ];
+
+      $showList = count($features) ? $features : $defaultFeatures;
+      foreach ($showList as $f): ?>
+        <div class="col-sm-6 col-md-3">
+          <div class="Detail-feature-card p-3 border rounded">
+            <div class="Detail-feature-icon mb-2"><i class="fas fa-check-circle"></i></div>
+            <p class="Detail-feature-text mb-0"><?= e($f) ?></p>
+          </div>
+        </div>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
+<!-- Course description -->
+<section class="Detail-course-description-section py-5">
+  <div class="container">
+    <h2 class="Detail-section-title">Course description</h2>
+    <div class="row">
+      <div class="col-lg-6">
+        <p class="Detail-description-text"><?= nl2br(e($course['description'] ?? 'No description provided.')) ?></p>
+      </div>
+      <div class="col-lg-6">
+        <?php if (!empty($course['image_url'])): ?>
+          <img src="<?= e($course['image_url']) ?>" alt="Course image" class="img-fluid rounded">
+        <?php else: ?>
+          <img src="/images/Course Detail 2.gif" alt="Course image" class="img-fluid rounded">
+        <?php endif; ?>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Chapters & Lessons (public view) -->
+<section class="Detail-courses-section py-5 bg-light">
+  <div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+      <div>
+        <h2 class="Detail-section-title mb-1">Courses In This Program</h2>
+        <p class="Detail-course-info"><?= array_sum(array_map('count', $lessons)) ?> lectures • <?= // approximate total time
+            ceil(array_sum(array_map(function($l){ return (int)($l['duration'] ?? 0); }, $lessonsRaw)) / 60) ?>h total</p>
+      </div>
+      <a href="#" class="Detail-expand-link" id="expandAll">Expand all chapters <i class="fas fa-arrow-right"></i></a>
+    </div>
+
+    <?php foreach ($lessons as $module => $items): ?>
+      <div class="Detail-chapter-accordion mb-3">
+        <div class="Detail-chapter-header p-3 bg-white d-flex justify-content-between align-items-center" data-bs-toggle="collapse" data-bs-target="#module-<?= e(md5($module)) ?>" aria-expanded="true" style="cursor:pointer">
+          <div>
+            <p class="Detail-chapter-meta mb-0"><?= e($module) ?> • <?= count($items) ?> lessons</p>
+            <h3 class="Detail-chapter-title mb-0"><?= e($module) ?></h3>
+          </div>
+          <i class="fas fa-chevron-down"></i>
+        </div>
+
+        <div class="collapse show" id="module-<?= e(md5($module)) ?>">
+          <div class="Detail-chapter-content p-3 bg-white border-top">
+            <div class="row g-2">
+              <?php foreach ($items as $lesson): 
+                $isPreview = !empty($lesson['is_preview']) && (int)$lesson['is_preview'] === 1;
+                $videoRaw = $lesson['video_url'] ?? '';
+                $video = normalizeVideoUrl($videoRaw);
+                ?>
+                <div class="col-12 mb-2">
+                  <div class="Detail-lesson-card-small d-flex align-items-center p-3 border rounded">
+                    <div class="Detail-lesson-icon me-3" style="min-width:48px; position:relative;">
+                      <?php if ($isPreview && $video): ?>
+                        <!-- playable preview icon -->
+                        <a href="#" class="play-preview" data-video="<?= e($video) ?>" data-title="<?= e($lesson['title']) ?>" style="text-decoration:none;">
+                          <i class="fas fa-play-circle fa-2x"></i>
+                        </a>
+                      <?php else: ?>
+                        <div class="locked" title="Locked"><i class="fas fa-lock fa-2x"></i></div>
+                      <?php endif; ?>
+                    </div>
+                    <div class="Detail-lesson-content flex-grow-1">
+                      <h5 class="mb-1"><?= e($lesson['title']) ?></h5>
+                      <p class="mb-1 small text-muted"><?= e(substr($lesson['description'] ?? '', 0, 140)) ?></p>
+                      <?php if (!$isPreview): ?>
+                        <div>
+                          <a href="/bundle/payment.php?course=<?= (int)$course['id'] ?>&redirect_lesson=<?= (int)$lesson['id'] ?>" class="btn btn-sm btn-outline-primary">Buy to unlock — ₹<?= number_format((float)$course['price'],2) ?></a>
+                        </div>
+                      <?php else: ?>
+                        <small class="text-success">Preview</small>
+                      <?php endif; ?>
+                    </div>
+                    <div class="ms-3 text-end">
+                      <small class="text-muted"><?= (int)$lesson['duration'] ?>m</small>
+                    </div>
+                  </div>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          </div>
+        </div>
+      </div>
+    <?php endforeach; ?>
+
+  </div>
+</section>
+
+<!-- Review / Testimonials / FAQ (kept same markup as you had) -->
+<?php include __DIR__ . '/includes/footer.php'; ?>
+
+<!-- Modal for playing preview videos -->
+<div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-centered">
+    <div class="modal-content bg-dark">
+      <div class="modal-header border-0">
+        <h5 class="modal-title text-white" id="previewModalLabel">Preview</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-0">
+        <div class="ratio ratio-16x9">
+          <iframe id="previewIframe" src="" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Small JS to power preview playback + expand all -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+(function(){
+  // play preview in modal
+  const previewModalEl = document.getElementById('previewModal');
+  const previewIframe = document.getElementById('previewIframe');
+  const bsPreview = new bootstrap.Modal(previewModalEl);
+
+  document.querySelectorAll('.play-preview').forEach(a => {
+    a.addEventListener('click', (ev) => {
+      ev.preventDefault();
+      const video = a.dataset.video;
+      const title = a.dataset.title || 'Preview';
+      // set iframe src
+      previewIframe.src = video;
+      document.getElementById('previewModalLabel').textContent = title;
+      bsPreview.show();
+    });
+  });
+
+  previewModalEl.addEventListener('hidden.bs.modal', function() {
+    // stop playback by clearing src
+    previewIframe.src = '';
+  });
+
+  // Expand / Collapse all handler
+  const expandBtn = document.getElementById('expandAll');
+  expandBtn && expandBtn.addEventListener('click', function(e){
+    e.preventDefault();
+    document.querySelectorAll('.collapse').forEach(c => {
+      c.classList.toggle('show');
+    });
+    // update text
+    if (expandBtn.textContent.trim().startsWith('Expand')) {
+      expandBtn.innerHTML = 'Collapse all chapters <i class="fas fa-arrow-left"></i>';
+    } else {
+      expandBtn.innerHTML = 'Expand all chapters <i class="fas fa-arrow-right"></i>';
+    }
+  });
+})();
+</script>
+</body>
+</html>
